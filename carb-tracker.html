@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarbTrack - Daily Carb Intake Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2d6a4f;
+            --primary-light: #52b788;
+            --primary-dark: #1b4332;
+            --accent: #f4a261;
+            --bg-primary: #f8faf8;
+            --bg-secondary: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --shadow: rgba(45, 106, 79, 0.08);
+            --success: #52b788;
+            --warning: #f4a261;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f8faf8 0%, #eef5f0 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 400;
+        }
+
+        .date-display {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px var(--shadow);
+            animation: slideUp 0.6s ease-out 0.2s both;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .date-display h2 {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .current-date {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 24px;
+            padding: 32px;
+            margin-bottom: 32px;
+            color: white;
+            box-shadow: 0 8px 24px rgba(45, 106, 79, 0.2);
+            animation: slideUp 0.6s ease-out 0.3s both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .stats-card h3 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .carb-amount {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .carb-unit {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            height: 8px;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            border-radius: 999px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+        }
+
+        .goal-text {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-top: 8px;
+        }
+
+        .upload-section {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px var(--shadow);
+            animation: slideUp 0.6s ease-out 0.4s both;
+        }
+
+        .upload-section h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-section h3::before {
+            content: '📸';
+            font-size: 1.5rem;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-light);
+            background: rgba(82, 183, 136, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background: rgba(82, 183, 136, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .upload-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .upload-text strong {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .preview-container {
+            margin-top: 20px;
+            border-radius: 16px;
+            overflow: hidden;
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+            background: var(--bg-primary);
+            padding: 16px;
+        }
+
+        .preview-image {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .analyzing {
+            text-align: center;
+            padding: 20px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .analysis-result {
+            background: linear-gradient(135deg, rgba(82, 183, 136, 0.1) 0%, rgba(82, 183, 136, 0.05) 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(82, 183, 136, 0.2);
+        }
+
+        .food-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 12px;
+        }
+
+        .carb-estimate {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .confidence {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(45, 106, 79, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(45, 106, 79, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--bg-primary);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            margin-top: 12px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .entries-section {
+            animation: slideUp 0.6s ease-out 0.5s both;
+        }
+
+        .entries-section h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .entries-section h3::before {
+            content: '📋';
+            font-size: 1.5rem;
+        }
+
+        .entry-item {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px var(--shadow);
+            animation: slideIn 0.4s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .entry-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .entry-info {
+            flex: 1;
+        }
+
+        .entry-food {
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 4px;
+        }
+
+        .entry-time {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .entry-carbs {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .entry-unit {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-size: 1.2rem;
+        }
+
+        .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .carb-amount {
+                font-size: 2.8rem;
+            }
+
+            .upload-section,
+            .stats-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CarbTrack</h1>
+            <p class="tagline">AI-powered carb tracking made simple</p>
+        </header>
+
+        <div class="date-display">
+            <h2>Today</h2>
+            <div class="current-date" id="currentDate"></div>
+        </div>
+
+        <div class="stats-card">
+            <h3>Total Carbs Today</h3>
+            <div class="carb-amount">
+                <span id="totalCarbs">0</span><span class="carb-unit">g</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="goal-text">Goal: <span id="dailyGoal">200</span>g per day</div>
+        </div>
+
+        <div class="upload-section">
+            <h3>Snap Your Food</h3>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">🍽️</div>
+                <div class="upload-text">
+                    <strong>Click to upload</strong> or drag & drop<br>
+                    <small>Take a photo of your meal</small>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" capture="environment">
+            </div>
+            <div class="preview-container" id="previewContainer">
+                <img id="previewImage" class="preview-image" alt="Food preview">
+                <div id="analysisContent"></div>
+            </div>
+        </div>
+
+        <div class="entries-section">
+            <h3>Today's Entries</h3>
+            <div id="entriesList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Storage keys
+        const STORAGE_KEY = 'carbtrack_entries';
+        const GOAL_KEY = 'carbtrack_goal';
+
+        // Initialize
+        let entries = loadEntries();
+        let dailyGoal = parseInt(localStorage.getItem(GOAL_KEY)) || 200;
+
+        // Display current date
+        const dateOptions = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', dateOptions);
+        document.getElementById('dailyGoal').textContent = dailyGoal;
+
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const analysisContent = document.getElementById('analysisContent');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleImageUpload(file);
+            }
+        });
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleImageUpload(file);
+            }
+        });
+
+        async function handleImageUpload(file) {
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                previewContainer.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+
+            // Show analyzing state
+            analysisContent.innerHTML = `
+                <div class="analyzing">
+                    <div>🤔 Analyzing your food...</div>
+                </div>
+            `;
+
+            try {
+                // Convert image to base64
+                const base64Image = await fileToBase64(file);
+                
+                // Call Claude API for food analysis
+                const analysis = await analyzeFoodImage(base64Image);
+                
+                // Display results
+                displayAnalysisResult(analysis);
+            } catch (error) {
+                analysisContent.innerHTML = `
+                    <div style="color: #ef4444; text-align: center; padding: 20px;">
+                        ⚠️ Error analyzing image. Please try again.
+                    </div>
+                `;
+                console.error('Analysis error:', error);
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function analyzeFoodImage(base64Image) {
+            const response = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: 'claude-sonnet-4-20250514',
+                    max_tokens: 1000,
+                    messages: [{
+                        role: 'user',
+                        content: [
+                            {
+                                type: 'image',
+                                source: {
+                                    type: 'base64',
+                                    media_type: 'image/jpeg',
+                                    data: base64Image
+                                }
+                            },
+                            {
+                                type: 'text',
+                                text: `Analyze this food image and estimate the carbohydrate content. Please respond in JSON format only (no markdown, no preamble) with this structure:
+{
+  "foodName": "name of the food/dish",
+  "carbEstimate": number (estimated carbs in grams),
+  "confidence": "high/medium/low",
+  "portionSize": "estimated portion description",
+  "breakdown": "brief explanation of the estimate"
+}`
+                            }
+                        ]
+                    }]
+                })
+            });
+
+            const data = await response.json();
+            const textContent = data.content.find(item => item.type === 'text')?.text || '';
+            
+            // Parse JSON response
+            const jsonMatch = textContent.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            
+            throw new Error('Invalid response format');
+        }
+
+        function displayAnalysisResult(analysis) {
+            analysisContent.innerHTML = `
+                <div class="analysis-result">
+                    <div class="food-name">${analysis.foodName}</div>
+                    <div class="carb-estimate">${analysis.carbEstimate}g carbs</div>
+                    <div class="confidence">
+                        Confidence: ${analysis.confidence} • ${analysis.portionSize}
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px;">
+                        ${analysis.breakdown}
+                    </div>
+                    <button class="btn btn-primary" onclick="addEntry('${analysis.foodName.replace(/'/g, "\\'")}', ${analysis.carbEstimate})">
+                        Add to Today's Log
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetUpload()">
+                        Take Another Photo
+                    </button>
+                </div>
+            `;
+        }
+
+        function addEntry(foodName, carbs) {
+            const entry = {
+                id: Date.now(),
+                foodName: foodName,
+                carbs: carbs,
+                timestamp: new Date().toISOString()
+            };
+
+            entries.push(entry);
+            saveEntries();
+            updateUI();
+            resetUpload();
+
+            // Scroll to entries
+            document.getElementById('entriesList').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function deleteEntry(id) {
+            entries = entries.filter(entry => entry.id !== id);
+            saveEntries();
+            updateUI();
+        }
+
+        function resetUpload() {
+            previewContainer.style.display = 'none';
+            fileInput.value = '';
+            analysisContent.innerHTML = '';
+        }
+
+        function updateUI() {
+            // Get today's entries
+            const today = new Date().toDateString();
+            const todayEntries = entries.filter(entry => 
+                new Date(entry.timestamp).toDateString() === today
+            );
+
+            // Calculate total carbs
+            const totalCarbs = todayEntries.reduce((sum, entry) => sum + entry.carbs, 0);
+            document.getElementById('totalCarbs').textContent = totalCarbs;
+
+            // Update progress bar
+            const progress = Math.min((totalCarbs / dailyGoal) * 100, 100);
+            document.getElementById('progressFill').style.width = progress + '%';
+
+            // Display entries
+            const entriesList = document.getElementById('entriesList');
+            if (todayEntries.length === 0) {
+                entriesList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🍽️</div>
+                        <div>No entries yet today.<br>Start by taking a photo of your meal!</div>
+                    </div>
+                `;
+            } else {
+                entriesList.innerHTML = todayEntries
+                    .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+                    .map(entry => `
+                        <div class="entry-item">
+                            <div class="entry-info">
+                                <div class="entry-food">${entry.foodName}</div>
+                                <div class="entry-time">${formatTime(entry.timestamp)}</div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="entry-carbs">
+                                    ${entry.carbs}<span class="entry-unit">g</span>
+                                </div>
+                                <button class="delete-btn" onclick="deleteEntry(${entry.id})" title="Delete entry">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+            }
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
+        }
+
+        function loadEntries() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        function saveEntries() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+        }
+
+        // Initial UI update
+        updateUI();
+    </script>
+</body>
+</html>
